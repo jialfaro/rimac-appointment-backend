@@ -23,7 +23,7 @@ provider:
     SNS_TOPIC_CL: arn:aws:sns:us-east-2:885172545587:AppointmentCL
     RDS_HOST: appointmentsdb.c5m0u6smeb28.us-east-2.rds.amazonaws.com
     RDS_USER: admin
-    RDS_PASSWORD: $Seguridad.2025$
+    RDS_PASSWORD: admin123
     RDS_DB: appointmentsdb
   iam:
     role:
