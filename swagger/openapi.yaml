@@ -1,5 +1,50 @@
 openapi: 3.0.0
 info:
-  title: Rimac Appointment API
+  title: Rimac Appointments API
   version: 1.0.0
-paths: {}
+  description: API para crear y consultar citas médicas
+
+paths:
+  /appointments:
+    post:
+      summary: Crear una nueva cita
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+      responses:
+        '200':
+          description: Agendamiento en proceso
+
+  /appointments/{insuredId}:
+    get:
+      summary: Obtener citas por asegurado
+      parameters:
+        - in: path
+          name: insuredId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de citas
+
+components:
+  schemas:
+    Appointment:
+      type: object
+      required:
+        - insuredId
+        - scheduleId
+        - countryISO
+      properties:
+        insuredId:
+          type: string
+        scheduleId:
+          type: integer
+        countryISO:
+          type: string
+        status:
+          type: string

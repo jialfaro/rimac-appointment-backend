@@ -25,6 +25,7 @@ provider:
     RDS_USER: admin
     RDS_PASSWORD: admin123
     RDS_DB: appointmentsdb
+    AWS_LAMBDA_NODEJS_DISABLE_CALLBACK_WARNING: 1
   iam:
     role:
       statements:
@@ -92,6 +93,20 @@ functions:
       - sqs:
           arn:
             Fn::GetAtt: [EventBridgeQueue, Arn]
+
+  swaggerDocs:
+    handler: src/interfaces/handlers/http/docs.handler
+    events:
+      - httpApi:
+          path: /docs
+          method: get
+      - httpApi:
+          path: /docs/{proxy+}
+          method: any
+
+package:
+  include:
+    - swagger/openapi.yaml
 
 resources:
   Resources:
