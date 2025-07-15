@@ -11,10 +11,13 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     const appointments = await useCase.execute(insuredId);
     return {
       statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(appointments),
     };
   } catch (error) {
     console.error(error);
-    return { statusCode: 500, body: 'Error al obtener agendamientos' };
+    return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: 'Error al obtener agendamientos' };
   }
 };

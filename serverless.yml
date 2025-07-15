@@ -42,6 +42,10 @@ provider:
           Resource:
             - arn:aws:sns:us-east-2:885172545587:AppointmentPE
             - arn:aws:sns:us-east-2:885172545587:AppointmentCL
+        - Effect: Allow
+          Action:
+            - events:PutEvents
+          Resource: arn:aws:events:us-east-2:885172545587:event-bus/default
 
 functions:
   postAppointment:
