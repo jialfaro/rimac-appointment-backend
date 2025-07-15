@@ -19,5 +19,6 @@ export class SnsPublisher {
         }
       }
     }).promise();
+    console.log('Publicado en SNS:', { topicArn, appointment });
   }
 }

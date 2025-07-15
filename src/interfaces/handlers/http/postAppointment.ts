@@ -13,10 +13,13 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     await useCase.execute(body);
     return {
       statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ message: 'Agendamiento en proceso' }),
     };
   } catch (error) {
     console.error(error);
-    return { statusCode: 500, body: 'Error al procesar el agendamiento' };
+    return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: 'Error al procesar el agendamiento' };
   }
 };
