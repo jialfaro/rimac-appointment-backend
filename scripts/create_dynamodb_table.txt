@@ -1,0 +1,6 @@
+# Crear tabla en DynamoDB
+aws dynamodb create-table \
+  --table-name Appointments \
+  --attribute-definitions AttributeName=insuredId,AttributeType=S \
+  --key-schema AttributeName=insuredId,KeyType=HASH \
+  --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5

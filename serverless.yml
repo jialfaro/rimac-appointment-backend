@@ -1,0 +1,131 @@
+service: rimac-appointment-backend
+frameworkVersion: '3'
+
+plugins:
+  - serverless-esbuild
+
+custom:
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    exclude: ['aws-sdk']
+    target: 'node20'
+    platform: 'node'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-2
+  environment:
+    DYNAMODB_TABLE: Appointments
+    SNS_TOPIC_PE: arn:aws:sns:us-east-2:885172545587:AppointmentPE
+    SNS_TOPIC_CL: arn:aws:sns:us-east-2:885172545587:AppointmentCL
+    RDS_HOST: appointmentsdb.c5m0u6smeb28.us-east-2.rds.amazonaws.com
+    RDS_USER: admin
+    RDS_PASSWORD: $Seguridad.2025$
+    RDS_DB: appointmentsdb
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:GetItem
+            - dynamodb:Query
+          Resource:
+            - arn:aws:dynamodb:us-east-2:885172545587:table/Appointments
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource:
+            - arn:aws:sns:us-east-2:885172545587:AppointmentPE
+            - arn:aws:sns:us-east-2:885172545587:AppointmentCL
+
+functions:
+  postAppointment:
+    handler: src/interfaces/handlers/http/postAppointment.handler
+    layers:
+      - arn:aws:lambda:us-east-2:885172545587:layer:rimac-mysql-layer:1
+    events:
+      - httpApi:
+          path: /appointments
+          method: post
+
+  getAppointments:
+    handler: src/interfaces/handlers/http/getAppointments.handler
+    layers:
+      - arn:aws:lambda:us-east-2:885172545587:layer:rimac-mysql-layer:1
+    events:
+      - httpApi:
+          path: /appointments/{insuredId}
+          method: get
+
+  processSQSPE:
+    handler: src/interfaces/handlers/events/processSQSPE.handler
+    layers:
+      - arn:aws:lambda:us-east-2:885172545587:layer:rimac-mysql-layer:1
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [AppointmentQueuePE, Arn]
+
+  processSQSCL:
+    handler: src/interfaces/handlers/events/processSQSCL.handler
+    layers:
+      - arn:aws:lambda:us-east-2:885172545587:layer:rimac-mysql-layer:1
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [AppointmentQueueCL, Arn]
+
+  updateStatusFromEventBridge:
+    handler: src/interfaces/handlers/events/updateStatusFromEventBridge.handler
+    layers:
+      - arn:aws:lambda:us-east-2:885172545587:layer:rimac-mysql-layer:1
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [EventBridgeQueue, Arn]
+
+resources:
+  Resources:
+    AppointmentTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Appointments
+        AttributeDefinitions:
+          - AttributeName: insuredId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: insuredId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+
+    AppointmentTopicPE:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: AppointmentPE
+
+    AppointmentTopicCL:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: AppointmentCL
+
+    AppointmentQueuePE:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: SQS_PE
+
+    AppointmentQueueCL:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: SQS_CL
+
+    EventBridgeQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: EventBridgeToLambda
